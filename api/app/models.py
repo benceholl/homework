@@ -1,9 +1,10 @@
 import enum
-
 from datetime import datetime
 from typing import Optional
-from sqlmodel import SQLModel, UniqueConstraint, Field
+
 from pydantic import ConfigDict, computed_field, model_validator
+from sqlalchemy import Column, DateTime
+from sqlmodel import Field, SQLModel, UniqueConstraint
 
 
 class Result(str, enum.Enum):
@@ -19,8 +20,10 @@ class PipelineRunBase(SQLModel):
     build_id: str
     branch: str
     result: Result
-    start_time: datetime
-    end_time: Optional[datetime] = None
+    start_time: datetime = Field(sa_column=Column(DateTime(timezone=True)))
+    end_time: Optional[datetime] = Field(
+        default=None, sa_column=Column(DateTime(timezone=True))
+    )
 
     @model_validator(mode="after")
     def validate_times(self):

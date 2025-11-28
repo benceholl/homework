@@ -4,8 +4,8 @@ from fastapi import Depends, FastAPI
 from sqlmodel import Session, select
 from sqlalchemy.dialects.postgresql import insert
 
-from .db import get_session, init_db
-from .models import PipelineRun, PipelineRunBase, PipelineRunRead
+from db import get_session, init_db
+from models import PipelineRun, PipelineRunBase, PipelineRunRead
 
 
 app = FastAPI(title="Homework API")
@@ -32,7 +32,7 @@ def ingest_events(
             )
             .returning(PipelineRun)
         )
-        db_run = session.exec(stmt).one()
+        db_run = session.exec(stmt).scalar_one()
         saved.append(db_run)
 
     session.commit()
