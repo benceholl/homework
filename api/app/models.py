@@ -1,9 +1,9 @@
 import enum
 
-from typing import Optional
 from datetime import datetime
-from pydantic import model_validator
-from sqlmodel import Field, SQLModel, UniqueConstraint
+from typing import Optional
+from sqlmodel import SQLModel, UniqueConstraint, Field
+from pydantic import ConfigDict, computed_field, model_validator
 
 
 class Result(str, enum.Enum):
@@ -14,6 +14,8 @@ class Result(str, enum.Enum):
 
 
 class PipelineRunBase(SQLModel):
+    model_config = ConfigDict(from_attributes=True)
+
     build_id: str
     branch: str
     result: Result
@@ -35,11 +37,17 @@ class PipelineRunBase(SQLModel):
 
 
 class PipelineRun(PipelineRunBase, table=True):
-    __table_args__ = (UniqueConstraint("build_id", "branch", name="pipeline_runs"),)
+    __table_args__ = (UniqueConstraint("build_id", "branch", name="uq_build_branch"),)
 
     id: Optional[int] = Field(default=None, primary_key=True)
 
 
 class PipelineRunRead(PipelineRunBase):
     id: int
-    duration_seconds: Optional[float] = None
+
+    @computed_field
+    @property
+    def duration_seconds(self) -> Optional[float]:
+        if self.end_time:
+            return (self.end_time - self.start_time).total_seconds()
+        return None
