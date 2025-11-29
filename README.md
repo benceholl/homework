@@ -53,6 +53,31 @@ Small CI/CD pipeline run collector with FastAPI, PostgreSQL, and a pre-provision
 - **GET `/stats/summary`**  
   Counts by result, average duration by branch, and latest run per branch.
 
+### Sample curl
+Ingest a single run:
+```sh
+curl -X POST http://localhost:8000/events \
+  -H "Content-Type: application/json" \
+  -d '{"build_id":"build-1001","branch":"main","result":"success","start_time":"2025-09-28T10:15:00Z","end_time":"2025-09-28T10:18:42Z"}'
+```
+
+Ingest multiple runs:
+```sh
+curl -X POST http://localhost:8000/events \
+  -H "Content-Type: application/json" \
+  -d '[{"build_id":"build-1002","branch":"feature/login-refactor","result":"failed","start_time":"2025-09-28T11:02:10Z","end_time":"2025-09-28T11:04:10Z"},{"build_id":"build-1003","branch":"main","result":"canceled","start_time":"2025-09-28T12:30:00Z","end_time":"2025-09-28T12:31:00Z"}]'
+```
+
+List recent runs:
+```sh
+curl http://localhost:8000/events
+```
+
+Summary:
+```sh
+curl http://localhost:8000/stats/summary
+```
+
 Validation rules:
 - Required: `build_id`, `branch`, `result`, `start_time`
 - `result` ∈ {success, failed, canceled, running}
