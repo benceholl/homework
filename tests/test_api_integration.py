@@ -1,7 +1,6 @@
 import os
-import pytest
 
-from hashlib import sha256
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 

@@ -1,14 +1,13 @@
 from hashlib import sha256
-from sqlalchemy import func, text
-from typing import Dict, List, Union
-from sqlmodel import Session, select
-from sqlalchemy.dialects.postgresql import insert
-from fastapi.middleware.cors import CORSMiddleware
+
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from models import PipelineRun, PipelineRunBase, PipelineRunRead
+from sqlalchemy import func, text
+from sqlalchemy.dialects.postgresql import insert
+from sqlmodel import Session, select
 
 from db import get_session, init_db
-from models import PipelineRun, PipelineRunBase, PipelineRunRead
-
 
 app = FastAPI(
     title="Homework API",
@@ -30,18 +29,18 @@ init_db()
 
 @app.post(
     "/events",
-    response_model=List[PipelineRunRead],
+    response_model=list[PipelineRunRead],
     status_code=201,
     tags=["events"],
     summary="Ingest pipeline runs (single or array)",
     description="Upserts on (build_id, branch). Accepts a single object or an array of objects.",
 )
 def ingest_events(
-    payload: Union[PipelineRunBase, List[PipelineRunBase]],
+    payload: PipelineRunBase | list[PipelineRunBase],
     session: Session = Depends(get_session),
-) -> List[PipelineRunRead]:
+) -> list[PipelineRunRead]:
     runs = payload if isinstance(payload, list) else [payload]
-    saved: List[PipelineRun] = []
+    saved: list[PipelineRun] = []
 
     for run in runs:
         values = run.model_dump()
@@ -69,12 +68,12 @@ def ingest_events(
 
 @app.get(
     "/events",
-    response_model=List[PipelineRunRead],
+    response_model=list[PipelineRunRead],
     tags=["events"],
     summary="List recent pipeline runs",
     description="Returns up to 100 most recent runs ordered by start_time desc.",
 )
-def list_events(session: Session = Depends(get_session)) -> List[PipelineRunRead]:
+def list_events(session: Session = Depends(get_session)) -> list[PipelineRunRead]:
     stmt = select(PipelineRun).order_by(PipelineRun.start_time.desc()).limit(100)
     rows = session.exec(stmt).all()
     return [PipelineRunRead.model_validate(row) for row in rows]
@@ -86,7 +85,7 @@ def list_events(session: Session = Depends(get_session)) -> List[PipelineRunRead
     summary="Aggregated run statistics",
     description="Counts by result, average duration by branch, and latest run per branch.",
 )
-def stats_summary(session: Session = Depends(get_session)) -> Dict:
+def stats_summary(session: Session = Depends(get_session)) -> dict:
     counts = session.exec(
         select(PipelineRun.result, func.count()).group_by(PipelineRun.result)
     ).all()
@@ -99,7 +98,7 @@ def stats_summary(session: Session = Depends(get_session)) -> Dict:
         .group_by(PipelineRun.branch)
     ).all()
 
-    latest_runs: Dict[str, PipelineRun] = {}
+    latest_runs: dict[str, PipelineRun] = {}
     ordered = session.exec(
         select(PipelineRun).order_by(PipelineRun.branch, PipelineRun.start_time.desc())
     ).all()
@@ -123,7 +122,7 @@ def stats_summary(session: Session = Depends(get_session)) -> Dict:
     summary="Health check",
     description="Pings the database to confirm availability.",
 )
-def health(session: Session = Depends(get_session)) -> Dict[str, str]:
+def health(session: Session = Depends(get_session)) -> dict[str, str]:
     try:
         session.exec(text("SELECT 1")).one()
         return {"status": "ok"}

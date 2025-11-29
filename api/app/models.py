@@ -1,11 +1,9 @@
 import enum
-
-from typing import Optional
 from datetime import datetime
 
+from pydantic import ConfigDict, computed_field, model_validator
 from sqlalchemy import Column, DateTime
 from sqlmodel import Field, SQLModel, UniqueConstraint
-from pydantic import ConfigDict, computed_field, model_validator
 
 
 class Result(str, enum.Enum):
@@ -22,12 +20,12 @@ class PipelineRunBase(SQLModel):
     branch: str
     result: Result
     start_time: datetime = Field(sa_column=Column(DateTime(timezone=True)))
-    end_time: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    end_time: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
 
-    repo_name: Optional[str] = None
-    commit_sha: Optional[str] = None
-    runner: Optional[str] = None
-    workflow: Optional[str] = None
+    repo_name: str | None = None
+    commit_sha: str | None = None
+    runner: str | None = None
+    workflow: str | None = None
 
     @model_validator(mode="after")
     def validate_times(self):
@@ -47,17 +45,17 @@ class PipelineRun(PipelineRunBase, table=True):
     __tablename__ = "pipeline_runs"
     __table_args__ = (UniqueConstraint("build_id", "branch", name="uq_build_branch"),)
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    idempotency_key: Optional[str] = Field(default=None, unique=True, index=True)
+    id: int | None = Field(default=None, primary_key=True)
+    idempotency_key: str | None = Field(default=None, unique=True, index=True)
 
 
 class PipelineRunRead(PipelineRunBase):
     id: int
-    idempotency_key: Optional[str] = None
+    idempotency_key: str | None = None
 
     @computed_field
     @property
-    def duration_seconds(self) -> Optional[float]:
+    def duration_seconds(self) -> float | None:
         if self.end_time:
             return (self.end_time - self.start_time).total_seconds()
         return None
