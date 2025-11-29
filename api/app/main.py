@@ -1,10 +1,10 @@
 from hashlib import sha256
 from sqlalchemy import func, text
 from typing import Dict, List, Union
-from fastapi import Depends, FastAPI, HTTPException
 from sqlmodel import Session, select
 from sqlalchemy.dialects.postgresql import insert
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Depends, FastAPI, HTTPException
 
 from db import get_session, init_db
 from models import PipelineRun, PipelineRunBase, PipelineRunRead

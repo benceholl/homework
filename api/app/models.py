@@ -1,10 +1,11 @@
 import enum
+
 from typing import Optional
 from datetime import datetime
 
-from pydantic import ConfigDict, computed_field, model_validator
 from sqlalchemy import Column, DateTime
 from sqlmodel import Field, SQLModel, UniqueConstraint
+from pydantic import ConfigDict, computed_field, model_validator
 
 
 class Result(str, enum.Enum):
