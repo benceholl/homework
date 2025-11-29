@@ -1,6 +1,6 @@
 import enum
-from datetime import datetime
 from typing import Optional
+from datetime import datetime
 
 from pydantic import ConfigDict, computed_field, model_validator
 from sqlalchemy import Column, DateTime
@@ -44,10 +44,12 @@ class PipelineRun(PipelineRunBase, table=True):
     __table_args__ = (UniqueConstraint("build_id", "branch", name="uq_build_branch"),)
 
     id: Optional[int] = Field(default=None, primary_key=True)
+    idempotency_key: Optional[str] = Field(default=None, unique=True, index=True)
 
 
 class PipelineRunRead(PipelineRunBase):
     id: int
+    idempotency_key: Optional[str] = None
 
     @computed_field
     @property
