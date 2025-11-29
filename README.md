@@ -21,6 +21,7 @@ Small CI/CD pipeline run collector with FastAPI, PostgreSQL, and a pre-provision
 2) Start the stack:
    ```sh
    docker compose up --build
+   # Watch out for proxy!
    ```
 3) Services:
    - API: http://localhost:8000 (OpenAPI docs at `/docs`)
