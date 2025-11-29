@@ -114,9 +114,3 @@ Table `pipeline_runs`:
   docker compose down -v grafana
   docker compose up -d grafana
   ```
-
-## Notes
-- The app enforces TIMESTAMPTZ on `start_time`/`end_time` at startup to match validation.
-- Use `.env.example` only as a template; keep real secrets in a git-ignored env file per environment.
-- Linting/formatting: ruff recommended.
-- Tests: `pytest` integration suite expects a Postgres at `DATABASE_URL` (CI spins up postgres:16 service). Locally: `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/homework pytest`.
