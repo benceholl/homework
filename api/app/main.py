@@ -2,12 +2,12 @@ from hashlib import sha256
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from models import PipelineRun, PipelineRunBase, PipelineRunRead
 from sqlalchemy import func, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlmodel import Session, select
 
-from db import get_session, init_db
+from .db import get_session, init_db
+from .models import PipelineRun, PipelineRunBase, PipelineRunRead
 
 app = FastAPI(
     title="Homework API",
