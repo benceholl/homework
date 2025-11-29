@@ -7,22 +7,50 @@
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",
+  "templating": {
+    "list": [
+      {
+        "name": "branch",
+        "type": "query",
+        "datasource": {
+          "type": "postgres",
+          "uid": "postgres"
+        },
+        "query": "SELECT DISTINCT branch FROM pipeline_runs ORDER BY branch",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 1
+      },
+      {
+        "name": "repo",
+        "type": "query",
+        "datasource": {
+          "type": "postgres",
+          "uid": "postgres"
+        },
+        "query": "SELECT DISTINCT repo_name FROM pipeline_runs ORDER BY repo_name",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 1
+      }
+    ]
+  },
   "panels": [
     {
       "id": 1,
       "type": "barchart",
       "title": "Counts by Result (All Time)",
-      "datasource": {
-        "type": "postgres",
-        "uid": "postgres"
-      },
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT result AS result, COUNT(*) AS total FROM pipeline_runs GROUP BY result ORDER BY result;",
-          "refId": "A"
-        }
-      ],
+          "datasource": {
+            "type": "postgres",
+            "uid": "postgres"
+          },
+          "targets": [
+            {
+              "format": "table",
+              "rawSql": "SELECT result AS result, COUNT(*) AS total\nFROM pipeline_runs\nWHERE (${branch:sqlstring} IS NULL OR branch = ${branch})\n  AND (${repo:sqlstring} IS NULL OR repo_name = ${repo})\nGROUP BY result\nORDER BY result;",
+              "refId": "A"
+            }
+          ],
       "gridPos": {
         "h": 7,
         "w": 12,
@@ -34,17 +62,17 @@
       "id": 2,
       "type": "barchart",
       "title": "Counts by Result (Last 24h)",
-      "datasource": {
-        "type": "postgres",
-        "uid": "postgres"
-      },
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT result AS result, COUNT(*) AS total FROM pipeline_runs WHERE start_time >= NOW() - INTERVAL '24 hours' GROUP BY result ORDER BY result;",
-          "refId": "A"
-        }
-      ],
+          "datasource": {
+            "type": "postgres",
+            "uid": "postgres"
+          },
+          "targets": [
+            {
+              "format": "table",
+              "rawSql": "SELECT result AS result, COUNT(*) AS total\nFROM pipeline_runs\nWHERE start_time >= NOW() - INTERVAL '24 hours'\n  AND (${branch:sqlstring} IS NULL OR branch = ${branch})\n  AND (${repo:sqlstring} IS NULL OR repo_name = ${repo})\nGROUP BY result\nORDER BY result;",
+              "refId": "A"
+            }
+          ],
       "gridPos": {
         "h": 7,
         "w": 12,
@@ -56,17 +84,17 @@
       "id": 3,
       "type": "timeseries",
       "title": "Average Duration by Branch",
-      "datasource": {
-        "type": "postgres",
-        "uid": "postgres"
-      },
-      "targets": [
-        {
-          "format": "time_series",
-          "rawSql": "SELECT\n  $__timeGroupAlias(start_time, '5m'),\n  branch AS metric,\n  AVG(EXTRACT(EPOCH FROM (end_time - start_time))) AS avg_duration_s\nFROM pipeline_runs\nWHERE $__timeFilter(start_time) AND end_time IS NOT NULL\nGROUP BY 1, branch\nORDER BY 1;",
-          "refId": "A"
-        }
-      ],
+          "datasource": {
+            "type": "postgres",
+            "uid": "postgres"
+          },
+          "targets": [
+            {
+              "format": "time_series",
+              "rawSql": "SELECT\n  $__timeGroupAlias(start_time, '5m'),\n  branch AS metric,\n  AVG(EXTRACT(EPOCH FROM (end_time - start_time))) AS avg_duration_s\nFROM pipeline_runs\nWHERE $__timeFilter(start_time)\n  AND end_time IS NOT NULL\n  AND (${branch:sqlstring} IS NULL OR branch = ${branch})\n  AND (${repo:sqlstring} IS NULL OR repo_name = ${repo})\nGROUP BY 1, branch\nORDER BY 1;",
+              "refId": "A"
+            }
+          ],
       "gridPos": {
         "h": 9,
         "w": 24,
@@ -78,17 +106,17 @@
       "id": 4,
       "type": "table",
       "title": "Latest 20 Runs",
-      "datasource": {
-        "type": "postgres",
-        "uid": "postgres"
-      },
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT id, build_id, branch, result, start_time, end_time, EXTRACT(EPOCH FROM (end_time - start_time)) AS duration_s FROM pipeline_runs ORDER BY start_time DESC LIMIT 20;",
-          "refId": "A"
-        }
-      ],
+          "datasource": {
+            "type": "postgres",
+            "uid": "postgres"
+          },
+          "targets": [
+            {
+              "format": "table",
+              "rawSql": "SELECT id, build_id, branch, repo_name, commit_sha, result, start_time, end_time,\n       EXTRACT(EPOCH FROM (end_time - start_time)) AS duration_s\nFROM pipeline_runs\nWHERE (${branch:sqlstring} IS NULL OR branch = ${branch})\n  AND (${repo:sqlstring} IS NULL OR repo_name = ${repo})\nORDER BY start_time DESC\nLIMIT 20;",
+              "refId": "A"
+            }
+          ],
       "options": {
         "showHeader": true
       },
