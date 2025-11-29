@@ -10,7 +10,7 @@ Small CI/CD pipeline run collector with FastAPI, PostgreSQL, and a pre-provision
 
 ## Prerequisites
 - Docker + Docker Compose
-- Fill in a real env file based on `.env.example` (the example is checked in; do not use real secrets in git).
+- Fill in a real env file based on `.env.example`
 
 ## Quickstart
 1) Copy env template and edit secrets:
