@@ -93,9 +93,7 @@ def stats_summary(session: Session = Depends(get_session)) -> Dict:
     avg_duration = session.exec(
         select(
             PipelineRun.branch,
-            func.avg(
-                func.extract("epoch", PipelineRun.end_time - PipelineRun.start_time)
-            ),
+            func.avg(func.extract("epoch", PipelineRun.end_time - PipelineRun.start_time)),
         )
         .where(PipelineRun.end_time.is_not(None))
         .group_by(PipelineRun.branch)

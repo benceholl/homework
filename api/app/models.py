@@ -22,9 +22,7 @@ class PipelineRunBase(SQLModel):
     branch: str
     result: Result
     start_time: datetime = Field(sa_column=Column(DateTime(timezone=True)))
-    end_time: Optional[datetime] = Field(
-        default=None, sa_column=Column(DateTime(timezone=True))
-    )
+    end_time: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True)))
 
     repo_name: Optional[str] = None
     commit_sha: Optional[str] = None

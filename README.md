@@ -53,6 +53,9 @@ Small CI/CD pipeline run collector with FastAPI, PostgreSQL, and a pre-provision
 - **GET `/stats/summary`**  
   Counts by result, average duration by branch, and latest run per branch.
 
+- **GET `/health`**  
+  Simple DB ping for container/orchestrator health checks.
+
 ### Sample curl
 Ingest a single run:
 ```sh
@@ -83,6 +86,9 @@ Validation rules:
 - `result` ∈ {success, failed, canceled, running}
 - `end_time` (if present) must be >= `start_time`
 - Upsert key: `(build_id, branch)`
+- Idempotency: hash of build_id, branch, start/end, result, repo_name, commit_sha, runner, workflow; unique constraint on `idempotency_key`.
+
+Labels supported on runs: `repo_name`, `commit_sha`, `runner`, `workflow`.
 
 ## Database
 Table `pipeline_runs`:
@@ -92,12 +98,15 @@ Table `pipeline_runs`:
 - `result` TEXT CHECK in (success, failed, canceled, running)
 - `start_time` TIMESTAMPTZ NOT NULL
 - `end_time` TIMESTAMPTZ NULL
+- `idempotency_key` TEXT NOT NULL UNIQUE
+- `repo_name`, `commit_sha`, `runner`, `workflow` (optional labels)
 - UNIQUE (build_id, branch)
 - CHECK (end_time IS NULL OR end_time >= start_time)
 
 ## Grafana
 - Datasource: Postgres (host `db`, db `${POSTGRES_DB}`, user `${POSTGRES_USER}`)
 - Dashboard: `Pipeline Runs` auto-loaded (counts all-time/24h, avg duration by branch, latest 20 runs)
+- Variables: `branch`, `repo` to filter panels; queries respect these filters.
 - Default time range: now-24h → now (widen if your data is outside that window)
 - If provisioning ever looks stale, restart Grafana with a clean volume:
   ```sh
