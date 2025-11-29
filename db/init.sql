@@ -6,6 +6,10 @@ CREATE TABLE IF NOT EXISTS pipeline_runs (
     start_time TIMESTAMPTZ NOT NULL,
     end_time TIMESTAMPTZ NULL,
     idempotency_key TEXT NOT NULL UNIQUE,
+    repo_name TEXT NULL,
+    commit_sha TEXT NULL,
+    runner TEXT NULL,
+    workflow TEXT NULL,
     UNIQUE (build_id, branch),
     CHECK (end_time IS NULL OR end_time >= start_time)
 );

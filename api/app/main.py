@@ -1,7 +1,7 @@
 from hashlib import sha256
-from sqlalchemy import func
+from sqlalchemy import func, text
 from typing import Dict, List, Union
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from sqlmodel import Session, select
 from sqlalchemy.dialects.postgresql import insert
 from fastapi.middleware.cors import CORSMiddleware
@@ -45,7 +45,11 @@ def ingest_events(
 
     for run in runs:
         values = run.model_dump()
-        key_input = f"{run.build_id}|{run.branch}|{run.start_time.isoformat()}|{run.end_time.isoformat() if run.end_time else ''}|{run.result}"
+        key_input = (
+            f"{run.build_id}|{run.branch}|{run.start_time.isoformat()}|"
+            f"{run.end_time.isoformat() if run.end_time else ''}|{run.result}|"
+            f"{run.repo_name or ''}|{run.commit_sha or ''}|{run.runner or ''}|{run.workflow or ''}"
+        )
         values["idempotency_key"] = sha256(key_input.encode("utf-8")).hexdigest()
         stmt = (
             insert(PipelineRun)
@@ -113,3 +117,17 @@ def stats_summary(session: Session = Depends(get_session)) -> Dict:
             for branch, run in latest_runs.items()
         },
     }
+
+
+@app.get(
+    "/health",
+    tags=["health"],
+    summary="Health check",
+    description="Pings the database to confirm availability.",
+)
+def health(session: Session = Depends(get_session)) -> Dict[str, str]:
+    try:
+        session.exec(text("SELECT 1")).one()
+        return {"status": "ok"}
+    except Exception:
+        raise HTTPException(status_code=503, detail="database unavailable")

@@ -25,6 +25,11 @@ class PipelineRunBase(SQLModel):
         default=None, sa_column=Column(DateTime(timezone=True))
     )
 
+    repo_name: Optional[str] = None
+    commit_sha: Optional[str] = None
+    runner: Optional[str] = None
+    workflow: Optional[str] = None
+
     @model_validator(mode="after")
     def validate_times(self):
         start = self.start_time
