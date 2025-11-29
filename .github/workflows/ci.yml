@@ -35,4 +35,5 @@ jobs:
       - name: Pytest (integration)
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/homework
+          PYTHONPATH: ${{ github.workspace }}
         run: pytest
