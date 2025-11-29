@@ -1,0 +1,107 @@
+{
+  "id": null,
+  "uid": "pipeline-runs",
+  "title": "Pipeline Runs",
+  "timezone": "browser",
+  "editable": true,
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "barchart",
+      "title": "Counts by Result (All Time)",
+      "datasource": {
+        "type": "postgres",
+        "uid": "postgres"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT result AS result, COUNT(*) AS total FROM pipeline_runs GROUP BY result ORDER BY result;",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": 2,
+      "type": "barchart",
+      "title": "Counts by Result (Last 24h)",
+      "datasource": {
+        "type": "postgres",
+        "uid": "postgres"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT result AS result, COUNT(*) AS total FROM pipeline_runs WHERE start_time >= NOW() - INTERVAL '24 hours' GROUP BY result ORDER BY result;",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Average Duration by Branch",
+      "datasource": {
+        "type": "postgres",
+        "uid": "postgres"
+      },
+      "targets": [
+        {
+          "format": "time_series",
+          "rawSql": "SELECT\n  $__timeGroupAlias(start_time, '5m'),\n  branch AS metric,\n  AVG(EXTRACT(EPOCH FROM (end_time - start_time))) AS avg_duration_s\nFROM pipeline_runs\nWHERE $__timeFilter(start_time) AND end_time IS NOT NULL\nGROUP BY 1, branch\nORDER BY 1;",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      }
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "Latest 20 Runs",
+      "datasource": {
+        "type": "postgres",
+        "uid": "postgres"
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT id, build_id, branch, result, start_time, end_time, EXTRACT(EPOCH FROM (end_time - start_time)) AS duration_s FROM pipeline_runs ORDER BY start_time DESC LIMIT 20;",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showHeader": true
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      }
+    }
+  ],
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  }
+}

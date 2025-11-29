@@ -40,6 +40,7 @@ class PipelineRunBase(SQLModel):
 
 
 class PipelineRun(PipelineRunBase, table=True):
+    __tablename__ = "pipeline_runs"
     __table_args__ = (UniqueConstraint("build_id", "branch", name="uq_build_branch"),)
 
     id: Optional[int] = Field(default=None, primary_key=True)
