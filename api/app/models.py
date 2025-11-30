@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import ConfigDict, computed_field, model_validator
 from sqlalchemy import Column, DateTime
-from sqlmodel import Field, SQLModel, UniqueConstraint
+from sqlmodel import Field, SQLModel
 
 
 class Result(str, enum.Enum):
@@ -43,7 +43,6 @@ class PipelineRunBase(SQLModel):
 
 class PipelineRun(PipelineRunBase, table=True):
     __tablename__ = "pipeline_runs"
-    __table_args__ = (UniqueConstraint("build_id", "branch", name="uq_build_branch"),)
 
     id: int | None = Field(default=None, primary_key=True)
     idempotency_key: str | None = Field(default=None, unique=True, index=True)
